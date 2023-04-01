@@ -75,8 +75,6 @@ fn main() {
                 break;
             }
             ["move", "right"] => {
-                println!("hero is at row {} col {} ", hero_row, hero_col);
-
                 if hero_col != 4 {
                     place_piece(&mut board, BoardPiece::Empty, hero_row, hero_col);
                     hero_col = hero_col + 1;
@@ -86,10 +84,9 @@ fn main() {
                     println!("You reached the end of the cave");
                 }
                 check_surroundings(hero_row, hero_col, &board);
+                println!("hero is at row {} col {} ", hero_row, hero_col);
             }
             ["move", "left"] => {
-                println!("hero is at row {} col {} ", hero_row, hero_col);
-
                 if hero_col != 0 {
                     place_piece(&mut board, BoardPiece::Empty, hero_row, hero_col);
                     hero_col = hero_col - 1;
@@ -99,19 +96,21 @@ fn main() {
                     println!("You reached the end of the cave");
                 }
                 check_surroundings(hero_row, hero_col, &board);
+                println!("hero is at row {} col {} ", hero_row, hero_col);
             }
             ["move", "down"] => {
-                println!("hero is at row {} col {} ", hero_row, hero_col);
                 if hero_row != 4 {
                     place_piece(&mut board, BoardPiece::Empty, hero_row, hero_col);
+                    hero_row = hero_row + 1;
+                    place_piece(&mut board, BoardPiece::Hero, hero_row, hero_col);
                     print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
                 }
                 check_surroundings(hero_row, hero_col, &board);
+                println!("hero is at row {} col {} ", hero_row, hero_col);
             }
             ["move", "up"] => {
-                println!("hero is at row {} col {} ", hero_row, hero_col);
                 if hero_row != 0 {
                     place_piece(&mut board, BoardPiece::Empty, hero_row, hero_col);
                     hero_row = hero_row - 1;
@@ -121,6 +120,7 @@ fn main() {
                     println!("You reached the end of the cave");
                 }
                 check_surroundings(hero_row, hero_col, &board);
+                println!("hero is at row {} col {} ", hero_row, hero_col);
             }
             ["shoot", "right"] => {
                 if hero_arrows == 0 {
