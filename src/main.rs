@@ -15,12 +15,25 @@ enum BoardPiece {
 fn main() {
     let mut board = init_board();
     let (mut hero_row, mut hero_col) = random_row_col();
-    place_piece(&mut board, BoardPiece::Hero, hero_row, hero_col);
+    let mut hero_arrows: u8 = 3;
+    place_piece(
+        &mut board,
+        BoardPiece::Hero,
+        hero_row,
+        hero_col,
+        &mut hero_arrows,
+    );
     println!("Hero at row {}, column {}", hero_row, hero_col);
 
     //TODO arrow pot chafar a un altre
     let (arrow_row, arrow_col) = random_row_col();
-    place_piece(&mut board, BoardPiece::Arrow, arrow_row, arrow_col);
+    place_piece(
+        &mut board,
+        BoardPiece::Arrow,
+        arrow_row,
+        arrow_col,
+        &mut hero_arrows,
+    );
 
     let (mut wumpus_row, mut wumpus_col) = random_row_col();
     while hero_col == wumpus_col && hero_row == wumpus_row {
@@ -29,7 +42,13 @@ fn main() {
         wumpus_row = row;
         wumpus_col = col;
     }
-    place_piece(&mut board, BoardPiece::Wumpus, wumpus_row, wumpus_col);
+    place_piece(
+        &mut board,
+        BoardPiece::Wumpus,
+        wumpus_row,
+        wumpus_col,
+        &mut hero_arrows,
+    );
 
     let (mut bat_row, mut bat_col) = random_row_col();
     while (hero_col == bat_col && hero_row == bat_row)
@@ -39,7 +58,13 @@ fn main() {
         bat_row = row;
         bat_col = col;
     }
-    place_piece(&mut board, BoardPiece::Bats, bat_row, bat_col);
+    place_piece(
+        &mut board,
+        BoardPiece::Bats,
+        bat_row,
+        bat_col,
+        &mut hero_arrows,
+    );
 
     let (mut hole_row, mut hole_col) = random_row_col();
     while (hero_col == hole_col && hero_row == hole_row)
@@ -50,13 +75,18 @@ fn main() {
         hole_row = row;
         hole_col = col;
     }
-    place_piece(&mut board, BoardPiece::Hole, hole_row, hole_col);
+    place_piece(
+        &mut board,
+        BoardPiece::Hole,
+        hole_row,
+        hole_col,
+        &mut hero_arrows,
+    );
 
     print_board(&board);
 
     check_surroundings(hero_row, hero_col, &board);
 
-    let mut hero_arrows = 3;
     loop {
         println!("Move or shoot right, left, down, or up.");
         let mut action = String::new();
@@ -76,9 +106,21 @@ fn main() {
             }
             ["move", "right"] => {
                 if hero_col != 4 {
-                    place_piece(&mut board, BoardPiece::Empty, hero_row, hero_col);
+                    place_piece(
+                        &mut board,
+                        BoardPiece::Empty,
+                        hero_row,
+                        hero_col,
+                        &mut hero_arrows,
+                    );
                     hero_col = hero_col + 1;
-                    place_piece(&mut board, BoardPiece::Hero, hero_row, hero_col);
+                    place_piece(
+                        &mut board,
+                        BoardPiece::Hero,
+                        hero_row,
+                        hero_col,
+                        &mut hero_arrows,
+                    );
                     print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
@@ -88,9 +130,21 @@ fn main() {
             }
             ["move", "left"] => {
                 if hero_col != 0 {
-                    place_piece(&mut board, BoardPiece::Empty, hero_row, hero_col);
+                    place_piece(
+                        &mut board,
+                        BoardPiece::Empty,
+                        hero_row,
+                        hero_col,
+                        &mut hero_arrows,
+                    );
                     hero_col = hero_col - 1;
-                    place_piece(&mut board, BoardPiece::Hero, hero_row, hero_col);
+                    place_piece(
+                        &mut board,
+                        BoardPiece::Hero,
+                        hero_row,
+                        hero_col,
+                        &mut hero_arrows,
+                    );
                     print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
@@ -100,9 +154,21 @@ fn main() {
             }
             ["move", "down"] => {
                 if hero_row != 4 {
-                    place_piece(&mut board, BoardPiece::Empty, hero_row, hero_col);
+                    place_piece(
+                        &mut board,
+                        BoardPiece::Empty,
+                        hero_row,
+                        hero_col,
+                        &mut hero_arrows,
+                    );
                     hero_row = hero_row + 1;
-                    place_piece(&mut board, BoardPiece::Hero, hero_row, hero_col);
+                    place_piece(
+                        &mut board,
+                        BoardPiece::Hero,
+                        hero_row,
+                        hero_col,
+                        &mut hero_arrows,
+                    );
                     print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
@@ -112,9 +178,21 @@ fn main() {
             }
             ["move", "up"] => {
                 if hero_row != 0 {
-                    place_piece(&mut board, BoardPiece::Empty, hero_row, hero_col);
+                    place_piece(
+                        &mut board,
+                        BoardPiece::Empty,
+                        hero_row,
+                        hero_col,
+                        &mut hero_arrows,
+                    );
                     hero_row = hero_row - 1;
-                    place_piece(&mut board, BoardPiece::Hero, hero_row, hero_col);
+                    place_piece(
+                        &mut board,
+                        BoardPiece::Hero,
+                        hero_row,
+                        hero_col,
+                        &mut hero_arrows,
+                    );
                     print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
@@ -248,7 +326,19 @@ fn random_row_col() -> (usize, usize) {
 fn init_board() -> Vec<Vec<BoardPiece>> {
     vec![vec![BoardPiece::Empty; BOARD_SIZE]; BOARD_SIZE]
 }
-fn place_piece(board: &mut Vec<Vec<BoardPiece>>, piece: BoardPiece, row: usize, col: usize) {
+fn place_piece(
+    board: &mut Vec<Vec<BoardPiece>>,
+    piece: BoardPiece,
+    row: usize,
+    col: usize,
+    hero_arrows: &mut u8,
+) {
+    let piece_in_current_position = &board[row][col];
+
+    if piece == BoardPiece::Hero && *piece_in_current_position == BoardPiece::Arrow {
+        *hero_arrows += 1;
+    }
+
     board[row][col] = piece;
 }
 fn print_board(board: &Vec<Vec<BoardPiece>>) {
