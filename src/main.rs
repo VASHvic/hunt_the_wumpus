@@ -14,7 +14,7 @@ enum BoardPiece {
 }
 fn main() {
     let mut board = init_board();
-    let mut hero_arrows: u8 = 3;
+    let mut hero_arrows: u8 = 2;
 
     let (arrow_row, arrow_col) = random_row_col();
     place_piece(
@@ -45,7 +45,7 @@ fn main() {
         &mut hero_arrows,
     )
     .unwrap();
-    println!("Hero at row {}, column {}", hero_row, hero_col);
+    // println!("Hero at row {}, column {}", hero_row, hero_col);
 
     let (mut wumpus_row, mut wumpus_col) = random_row_col();
     while hero_col == wumpus_col && hero_row == wumpus_row {
@@ -97,7 +97,7 @@ fn main() {
     )
     .unwrap();
 
-    print_board(&board);
+    // print_board(&board);
 
     check_surroundings(hero_row, hero_col, &board);
 
@@ -144,7 +144,7 @@ fn main() {
                         }
                     }
 
-                    print_board(&board);
+                    // print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
                 }
@@ -158,7 +158,8 @@ fn main() {
                         hero_row,
                         hero_col,
                         &mut hero_arrows,
-                    );
+                    )
+                    .unwrap();
                     hero_col = hero_col - 1;
                     let res = place_piece(
                         &mut board,
@@ -174,7 +175,7 @@ fn main() {
                             break;
                         }
                     }
-                    print_board(&board);
+                    // print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
                 }
@@ -188,7 +189,8 @@ fn main() {
                         hero_row,
                         hero_col,
                         &mut hero_arrows,
-                    );
+                    )
+                    .unwrap();
                     hero_row = hero_row + 1;
                     let res = place_piece(
                         &mut board,
@@ -204,7 +206,7 @@ fn main() {
                             break;
                         }
                     }
-                    print_board(&board);
+                    // print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
                 }
@@ -235,122 +237,91 @@ fn main() {
                             break;
                         }
                     }
-                    print_board(&board);
+                    // print_board(&board);
                 } else {
                     println!("You reached the end of the cave");
                 }
                 check_surroundings(hero_row, hero_col, &board);
             }
             ["shoot", "right"] => {
-                if hero_arrows == 0 {
-                    println!(
-                        "{} arrows left!, you might find one in the caves",
-                        hero_arrows
-                    );
-                    continue;
-                }
-                hero_arrows -= 1;
-                println!("{} arrows left!", hero_arrows);
+                let arrow_col = hero_col + 1;
+                let arrow_row = hero_row;
+                let target = shoot_bow(&mut hero_arrows, arrow_row, arrow_col, &mut board);
 
-                let is_wumpus = board
-                    .get(hero_row)
-                    .and_then(|r| r.get(hero_col + 1))
-                    .cloned();
-                match is_wumpus {
-                    Some(BoardPiece::Wumpus) => {
-                        println!("You hunted the wumpus");
-                        break;
+                match target {
+                    Target::Wumpus => break,
+                    Target::Bats => {
+                        place_piece(
+                            &mut board,
+                            BoardPiece::Empty,
+                            arrow_row,
+                            arrow_col,
+                            &mut hero_arrows,
+                        )
+                        .unwrap();
                     }
-                    Some(data) => {
-                        println!("{:?}", data);
-                    }
-                    _ => {
-                        println!("MAL");
-                    }
-                }
+                    Target::None => continue,
+                };
             }
             ["shoot", "left"] => {
-                if hero_arrows == 0 {
-                    println!(
-                        "{} arrows left!, you might find one in the caves",
-                        hero_arrows
-                    );
-                    continue;
-                }
-                hero_arrows -= 1;
-                println!("{} arrows left!", hero_arrows);
-                let is_wumpus = board
-                    .get(hero_row)
-                    .and_then(|r| r.get(hero_col - 1))
-                    .cloned();
-                match is_wumpus {
-                    Some(BoardPiece::Wumpus) => {
-                        println!("You hunted the wumpus");
-                        break;
+                let arrow_col = if hero_col > 0 { hero_col - 1 } else { 0 };
+                let arrow_row = hero_row;
+                let target = shoot_bow(&mut hero_arrows, arrow_row, arrow_col, &mut board);
+
+                match target {
+                    Target::Wumpus => break,
+                    Target::Bats => {
+                        place_piece(
+                            &mut board,
+                            BoardPiece::Empty,
+                            arrow_row,
+                            arrow_col,
+                            &mut hero_arrows,
+                        )
+                        .unwrap();
                     }
-                    Some(data) => {
-                        println!("{:?}", data);
-                    }
-                    _ => {
-                        println!("MAL");
-                    }
-                }
+                    Target::None => continue,
+                };
             }
             ["shoot", "down"] => {
-                if hero_arrows == 0 {
-                    println!(
-                        "{} arrows left!, you might find one in the caves",
-                        hero_arrows
-                    );
-                    continue;
-                }
-                hero_arrows -= 1;
-                println!("{} arrows left!", hero_arrows);
-                let is_wumpus = board
-                    .get(hero_row + 1)
-                    .and_then(|r| r.get(hero_col))
-                    .cloned();
-                match is_wumpus {
-                    Some(BoardPiece::Wumpus) => {
-                        println!("You hunted the wumpus");
-                        break;
-                    }
-                    Some(data) => {
-                        println!("{:?}", data);
-                    }
+                let arrow_col = hero_col;
+                let arrow_row = hero_row + 1;
+                let target = shoot_bow(&mut hero_arrows, arrow_row, arrow_col, &mut board);
 
-                    _ => {
-                        println!("MAL");
+                match target {
+                    Target::Wumpus => break,
+                    Target::Bats => {
+                        place_piece(
+                            &mut board,
+                            BoardPiece::Empty,
+                            arrow_row,
+                            arrow_col,
+                            &mut hero_arrows,
+                        )
+                        .unwrap();
                     }
-                }
+                    Target::None => continue,
+                };
             }
 
             ["shoot", "up"] => {
-                if hero_arrows == 0 {
-                    println!(
-                        "{} arrows left!, you might find one in the caves",
-                        hero_arrows
-                    );
-                    continue;
-                }
-                hero_arrows -= 1;
-                println!("{} arrows left!", hero_arrows);
-                let is_wumpus = board
-                    .get(hero_row - 1)
-                    .and_then(|r| r.get(hero_col))
-                    .cloned();
-                match is_wumpus {
-                    Some(BoardPiece::Wumpus) => {
-                        println!("You hunted the wumpus");
-                        break;
+                let arrow_col = hero_col;
+                let arrow_row = if hero_row > 0 { hero_row - 1 } else { 0 };
+                let target = shoot_bow(&mut hero_arrows, arrow_row, arrow_col, &mut board);
+                match target {
+                    Target::Wumpus => break,
+                    Target::Bats => {
+                        place_piece(
+                            &mut board,
+                            BoardPiece::Empty,
+                            arrow_row,
+                            arrow_col,
+                            &mut hero_arrows,
+                        )
+                        .unwrap();
                     }
-                    Some(data) => {
-                        println!("{:?}", data);
-                    }
-                    _ => {
-                        println!("MAL");
-                    }
-                }
+                    Target::None => continue,
+                };
             }
             _ => {
                 println!("Invalid input. Please enter 'move' or 'shoot' followed by 'right', 'left', 'down', or 'up'");
@@ -378,7 +349,15 @@ fn place_piece(
     if piece == BoardPiece::Hero {
         match piece_in_current_position {
             BoardPiece::Arrow => {
+                println!("As you scour the forest floor, your eyes land on a glinting object - an arrow lying at your feet.");
                 *hero_arrows += 1;
+                println!("You have {} arrows!", hero_arrows);
+            }
+            BoardPiece::Wumpus => {
+                return Err("Suddenly, you spot the elusive wumpus ahead, but before you can even think of a plan, it stomps towards you, crushing you under its massive weight.".to_owned());
+            }
+            BoardPiece::Bats => {
+                return Err("You're swarmed by vampiric bats, their fangs piercing your skin as they drain your blood and leave you weak and lifeless.".to_owned());
             }
             BoardPiece::Hole => {
                 return Err("You slip and fall into an endless chasm, the darkness and emptiness swallowing you whole.".to_owned());
@@ -419,8 +398,6 @@ fn check_surroundings(hero_row: usize, hero_col: usize, board: &Vec<Vec<BoardPie
             .and_then(|r| r.get(hero_col))
             .cloned(),
     ];
-    println!();
-    println!("adjacents {:?}", adjacents);
 
     for adjacent in adjacents {
         match adjacent {
@@ -428,6 +405,42 @@ fn check_surroundings(hero_row: usize, hero_col: usize, board: &Vec<Vec<BoardPie
             Some(BoardPiece::Hole) => println!("You feel a breeze"),
             Some(BoardPiece::Bats) => println!("You hear a flapping"),
             _ => (),
+        }
+    }
+}
+enum Target {
+    Wumpus,
+    Bats,
+    None,
+}
+fn shoot_bow(
+    hero_arrows: &mut u8,
+    target_row: usize,
+    target_col: usize,
+    board: &mut Vec<Vec<BoardPiece>>,
+) -> Target {
+    if *hero_arrows == 0 {
+        println!("No arrows left! You might find one in the caves.");
+        return Target::None;
+    }
+    *hero_arrows -= 1;
+    println!("{} arrows left!", hero_arrows);
+    let target = board
+        .get_mut(target_row)
+        .and_then(|r| r.get_mut(target_col))
+        .map(|p| p.clone());
+    match target {
+        Some(BoardPiece::Wumpus) => {
+            println!("After a long and grueling hunt, you finally catch up to the wumpus and take it down with a well-aimed shot, its massive body collapsing at your feet.");
+            return Target::Wumpus;
+        }
+        Some(BoardPiece::Bats) => {
+            println!("You hit a swarm of bats, sending them flying in all directions.");
+            return Target::Bats;
+        }
+        _ => {
+            println!("You release the arrow, but your aim is off and it misses its mark. You hear the sound of it clattering against the rock wall, a painful reminder of your failure.");
+            return Target::None;
         }
     }
 }
