@@ -1,17 +1,10 @@
 use rand::Rng;
 use std::io;
+mod types;
+use types::{ArrowTarget, BoardPiece};
 
 const BOARD_SIZE: usize = 5;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum BoardPiece {
-    Empty,
-    Hero,
-    Wumpus,
-    Bats,
-    Arrow,
-    Hole,
-}
 fn main() {
     let mut board = init_board();
     let mut hero_arrows: u8 = 2;
@@ -249,8 +242,8 @@ fn main() {
                 let target = shoot_bow(&mut hero_arrows, arrow_row, arrow_col, &mut board);
 
                 match target {
-                    Target::Wumpus => break,
-                    Target::Bats => {
+                    ArrowTarget::Wumpus => break,
+                    ArrowTarget::Bats => {
                         place_piece(
                             &mut board,
                             BoardPiece::Empty,
@@ -260,7 +253,7 @@ fn main() {
                         )
                         .unwrap();
                     }
-                    Target::None => continue,
+                    ArrowTarget::None => continue,
                 };
             }
             ["shoot", "left"] => {
@@ -269,8 +262,8 @@ fn main() {
                 let target = shoot_bow(&mut hero_arrows, arrow_row, arrow_col, &mut board);
 
                 match target {
-                    Target::Wumpus => break,
-                    Target::Bats => {
+                    ArrowTarget::Wumpus => break,
+                    ArrowTarget::Bats => {
                         place_piece(
                             &mut board,
                             BoardPiece::Empty,
@@ -280,7 +273,7 @@ fn main() {
                         )
                         .unwrap();
                     }
-                    Target::None => continue,
+                    ArrowTarget::None => continue,
                 };
             }
             ["shoot", "down"] => {
@@ -289,8 +282,8 @@ fn main() {
                 let target = shoot_bow(&mut hero_arrows, arrow_row, arrow_col, &mut board);
 
                 match target {
-                    Target::Wumpus => break,
-                    Target::Bats => {
+                    ArrowTarget::Wumpus => break,
+                    ArrowTarget::Bats => {
                         place_piece(
                             &mut board,
                             BoardPiece::Empty,
@@ -300,7 +293,7 @@ fn main() {
                         )
                         .unwrap();
                     }
-                    Target::None => continue,
+                    ArrowTarget::None => continue,
                 };
             }
 
@@ -309,8 +302,8 @@ fn main() {
                 let arrow_row = if hero_row > 0 { hero_row - 1 } else { 0 };
                 let target = shoot_bow(&mut hero_arrows, arrow_row, arrow_col, &mut board);
                 match target {
-                    Target::Wumpus => break,
-                    Target::Bats => {
+                    ArrowTarget::Wumpus => break,
+                    ArrowTarget::Bats => {
                         place_piece(
                             &mut board,
                             BoardPiece::Empty,
@@ -320,7 +313,7 @@ fn main() {
                         )
                         .unwrap();
                     }
-                    Target::None => continue,
+                    ArrowTarget::None => continue,
                 };
             }
             _ => {
@@ -408,20 +401,15 @@ fn check_surroundings(hero_row: usize, hero_col: usize, board: &Vec<Vec<BoardPie
         }
     }
 }
-enum Target {
-    Wumpus,
-    Bats,
-    None,
-}
 fn shoot_bow(
     hero_arrows: &mut u8,
     target_row: usize,
     target_col: usize,
     board: &mut Vec<Vec<BoardPiece>>,
-) -> Target {
+) -> ArrowTarget {
     if *hero_arrows == 0 {
         println!("No arrows left! You might find one in the caves.");
-        return Target::None;
+        return ArrowTarget::None;
     }
     *hero_arrows -= 1;
     println!("{} arrows left!", hero_arrows);
@@ -432,15 +420,15 @@ fn shoot_bow(
     match target {
         Some(BoardPiece::Wumpus) => {
             println!("After a long and grueling hunt, you finally catch up to the wumpus and take it down with a well-aimed shot, its massive body collapsing at your feet.");
-            return Target::Wumpus;
+            return ArrowTarget::Wumpus;
         }
         Some(BoardPiece::Bats) => {
             println!("You hit a swarm of bats, sending them flying in all directions.");
-            return Target::Bats;
+            return ArrowTarget::Bats;
         }
         _ => {
             println!("You release the arrow, but your aim is off and it misses its mark. You hear the sound of it clattering against the rock wall, a painful reminder of your failure.");
-            return Target::None;
+            return ArrowTarget::None;
         }
     }
 }
