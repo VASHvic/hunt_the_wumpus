@@ -1,11 +1,14 @@
 use rand::Rng;
 use std::io;
+mod text;
 mod types;
+use text::{get_colors, ARROW_TEXT, WUMPUS_TEXT};
 use types::{ArrowTarget, BoardPiece};
 
 const BOARD_SIZE: usize = 5;
 
 fn main() {
+    let debug_board = true;
     let mut board = init_board();
     let mut hero_arrows: u8 = 2;
 
@@ -38,7 +41,9 @@ fn main() {
         &mut hero_arrows,
     )
     .unwrap();
-    // println!("Hero at row {}, column {}", hero_row, hero_col);
+    if debug_board == true {
+        println!("Hero at row {}, column {}", hero_row, hero_col);
+    }
 
     let (mut wumpus_row, mut wumpus_col) = random_row_col();
     while hero_col == wumpus_col && hero_row == wumpus_row {
@@ -89,13 +94,13 @@ fn main() {
         &mut hero_arrows,
     )
     .unwrap();
-
-    // print_board(&board);
+    if debug_board == true {
+        print_board(&board);
+    }
 
     check_surroundings(hero_row, hero_col, &board);
-
+    println!("Move or shoot right, left, down, or up.");
     loop {
-        println!("Move or shoot right, left, down, or up.");
         let mut action = String::new();
         io::stdin()
             .read_line(&mut action)
@@ -137,7 +142,9 @@ fn main() {
                         }
                     }
 
-                    // print_board(&board);
+                    if debug_board == true {
+                        print_board(&board);
+                    }
                 } else {
                     println!("You reached the end of the cave");
                 }
@@ -168,7 +175,10 @@ fn main() {
                             break;
                         }
                     }
-                    // print_board(&board);
+
+                    if debug_board == true {
+                        print_board(&board);
+                    }
                 } else {
                     println!("You reached the end of the cave");
                 }
@@ -199,7 +209,10 @@ fn main() {
                             break;
                         }
                     }
-                    // print_board(&board);
+
+                    if debug_board == true {
+                        print_board(&board);
+                    }
                 } else {
                     println!("You reached the end of the cave");
                 }
@@ -230,7 +243,9 @@ fn main() {
                             break;
                         }
                     }
-                    // print_board(&board);
+                    if debug_board == true {
+                        print_board(&board);
+                    }
                 } else {
                     println!("You reached the end of the cave");
                 }
@@ -338,16 +353,27 @@ fn place_piece(
     col: usize,
     hero_arrows: &mut u8,
 ) -> Result<(), String> {
+    let colors = get_colors();
+    let red = colors.get("red").unwrap();
+    let reset_color = colors.get("reset").unwrap();
     let piece_in_current_position = &mut board[row][col];
     if piece == BoardPiece::Hero {
         match piece_in_current_position {
             BoardPiece::Arrow => {
-                println!("As you scour the forest floor, your eyes land on a glinting object - an arrow lying at your feet.");
+                let random_text_index = rand::thread_rng().gen_range(0..=ARROW_TEXT.len() - 1);
+                let arrow_text = ARROW_TEXT.get(random_text_index);
+                println!("{}", arrow_text.unwrap());
                 *hero_arrows += 1;
                 println!("You have {} arrows!", hero_arrows);
             }
             BoardPiece::Wumpus => {
-                return Err("Suddenly, you spot the elusive wumpus ahead, but before you can even think of a plan, it stomps towards you, crushing you under its massive weight.".to_owned());
+                let random_text_index = rand::thread_rng().gen_range(0..=WUMPUS_TEXT.len() - 1);
+                let wumpus_text = WUMPUS_TEXT.get(random_text_index).unwrap();
+                let mut error_text = String::new();
+                error_text.push_str(red);
+                error_text.push_str(wumpus_text);
+                error_text.push_str(reset_color);
+                return Err(error_text);
             }
             BoardPiece::Bats => {
                 return Err("You're swarmed by vampiric bats, their fangs piercing your skin as they drain your blood and leave you weak and lifeless.".to_owned());
@@ -373,6 +399,7 @@ fn print_board(board: &Vec<Vec<BoardPiece>>) {
     println!();
 }
 fn check_surroundings(hero_row: usize, hero_col: usize, board: &Vec<Vec<BoardPiece>>) {
+    let colors = get_colors();
     let adjacents = vec![
         board
             .get(hero_row)
@@ -393,11 +420,21 @@ fn check_surroundings(hero_row: usize, hero_col: usize, board: &Vec<Vec<BoardPie
     ];
 
     for adjacent in adjacents {
+        let mut info = String::new();
         match adjacent {
-            Some(BoardPiece::Wumpus) => println!("You smell Wumpus"),
-            Some(BoardPiece::Hole) => println!("You feel a breeze"),
-            Some(BoardPiece::Bats) => println!("You hear a flapping"),
+            Some(BoardPiece::Wumpus) => info = String::from("You smell Wumpus"),
+            Some(BoardPiece::Hole) => info = String::from("You feel a breeze"),
+            Some(BoardPiece::Bats) => info = String::from("You hear a flapping"),
             _ => (),
+        }
+
+        if !info.is_empty() {
+            println!(
+                "{}{}{}",
+                colors.get("yellow").unwrap(),
+                info,
+                colors.get("reset").unwrap()
+            );
         }
     }
 }
@@ -407,8 +444,13 @@ fn shoot_bow(
     target_col: usize,
     board: &mut Vec<Vec<BoardPiece>>,
 ) -> ArrowTarget {
+    let colors = get_colors();
     if *hero_arrows == 0 {
-        println!("No arrows left! You might find one in the caves.");
+        println!(
+            "{}No arrows left! You might find one in the caves.{}",
+            colors.get("yellow").unwrap(),
+            colors.get("reset").unwrap()
+        );
         return ArrowTarget::None;
     }
     *hero_arrows -= 1;
@@ -419,11 +461,15 @@ fn shoot_bow(
         .map(|p| p.clone());
     match target {
         Some(BoardPiece::Wumpus) => {
-            println!("After a long and grueling hunt, you finally catch up to the wumpus and take it down with a well-aimed shot, its massive body collapsing at your feet.");
+            println!("{}After a long and grueling hunt, you finally catch up to the wumpus and take it down with a well-aimed shot, its massive body collapsing at your feet.{}",colors.get("green").unwrap(),colors.get("reset").unwrap());
             return ArrowTarget::Wumpus;
         }
         Some(BoardPiece::Bats) => {
-            println!("You hit a swarm of bats, sending them flying in all directions.");
+            println!(
+                "{}You hit a swarm of bats, sending them flying in all directions.{}",
+                colors.get("green").unwrap(),
+                colors.get("reset").unwrap()
+            );
             return ArrowTarget::Bats;
         }
         _ => {
